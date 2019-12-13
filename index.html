@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Robot demo</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { 
+        font: 24px Helvetica, Arial;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        text-align: center;
+      }
+      .container {
+        display: flex;
+        width: 750px;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0 auto;
+      }
+      #carpet-img, #tile-img {
+        width: 200px;
+        height: 200px;
+      }
+      #tile-img {
+        display: none;
+      }
+      .heading {
+        position: relative;
+      }
+      .compass {
+        width: 350xp;
+        height: 350px;
+      }
+      #heading {
+        position:absolute;
+        top: 109px;
+        left: 109px;
+      }
+      p {margin-top: 20px}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="floor-type">
+        <img src="./img/carpet.jpg" alt="carpet" id="carpet-img">
+        <img src="./img/tile.png" alt="tile" id="tile-img">
+        <p id="floor-type-text">Carpet detected</p>
+      </div>
+      <div class="heading">
+        <img src="./img/compass.jpg" alt="compass" class="compass">
+        <img src="./img/dir.png" alt="heading" id="heading">
+        <p id="time-text"></p>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const carpetImg = document.getElementById('carpet-img');
+        const tileImg = document.getElementById('tile-img');
+        const textEl = document.getElementById('floor-type-text');
+        const arrowEl = document.getElementById('heading');
+        const timeTextEl = document.getElementById('time-text');
+        socket.on('floor-type', type => {
+          
+
+          if (type === 'carpet') {
+            carpetImg.style.display = 'block';
+            tileImg.style.display = 'none';
+          } else {
+            carpetImg.style.display = 'none';
+            tileImg.style.display = 'block';
+          }
+          textEl.innerText = `${type.charAt(0).toUpperCase() + type.slice(1)} detected`;
+        });
+
+        socket.on('heading', deg => {
+          arrowEl.style.transform = `rotate(${deg}deg)`;
+        });
+
+        socket.on('time-running', ts => {
+          timeTextEl.innerText = formatTs(ts);
+        });
+
+        function formatTs(ts) {
+          const hours = Math.floor(ts / (1000 * 60 * 60));
+          const minutes = Math.floor((ts - hours * 1000 * 60 * 60) / (1000 * 60));
+          const seconds = Math.floor((ts - hours * 1000 * 60 * 60 - minutes * 1000 * 60) / 1000);
+          let timeStr = 'Robot running for';
+          const hs = hours > 9 ? hours : '0' + String(hours);
+          const ms = minutes > 9 ? minutes : '0' + String(minutes);
+          const ss = seconds > 9 ? seconds : '0' + String(seconds);
+          return `Robot running for: ${hs}:${ms}:${ss}`;
+        }
+    </script>
+  </body>
+</html>
